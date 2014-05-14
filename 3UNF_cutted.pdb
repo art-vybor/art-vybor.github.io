@@ -1,0 +1,61 @@
+HEADER    HYDROLASE/HYDROLASE INHIBITOR           15-NOV-11   3UNF              
+TITLE     MOUSE 20S IMMUNOPROTEASOME IN COMPLEX WITH PR-957                     
+COMPND    MOL_ID: 1;                                                            
+COMPND   2 MOLECULE: PROTEASOME SUBUNIT ALPHA TYPE-2;                           
+COMPND   3 CHAIN: A, O;                                                         
+COMPND   4 MOL_ID: 2;                                                           
+COMPND   5 MOLECULE: PROTEASOME SUBUNIT ALPHA TYPE-4;                           
+COMPND   6 CHAIN: B, P;                                                         
+COMPND   7 MOL_ID: 3;                                                           
+ATOM      1  N   ALA A   1      47.814 -62.575 -48.727  1.00 97.21           N  
+ANISOU    1  N   ALA A   1     9692  17303   9940  -4097  -1928   1710       N  
+ATOM      2  CA  ALA A   1      47.364 -61.215 -48.308  1.00 99.88           C  
+ANISOU    2  CA  ALA A   1     9961  17370  10618  -3973  -1868   1735       C  
+ATOM      3  C   ALA A   1      47.043 -60.345 -49.520  1.00100.71           C  
+ANISOU    3  C   ALA A   1    10258  17643  10363  -3957  -1900   1645       C  
+ATOM      4  O   ALA A   1      47.751 -60.392 -50.529  1.00100.61           O  
+ANISOU    4  O   ALA A   1    10221  17515  10488  -3911  -1827   1372       O  
+ATOM      5  CB  ALA A   1      48.423 -60.552 -47.440  1.00 96.88           C  
+ANISOU    5  CB  ALA A   1     9786  16500  10522  -3769  -1492   1402       C  
+ATOM      6  N   LYS A   2      45.975 -59.553 -49.416  1.00102.16           N  
+ANISOU    6  N   LYS A   2    10477  17636  10701  -3838  -2003   1629       N  
+ATOM      7  CA  LYS A   2      45.556 -58.684 -50.520  1.00101.59           C  
+ANISOU    7  CA  LYS A   2    10610  17468  10519  -4016  -2063   1479       C  
+ATOM      8  C   LYS A   2      44.926 -57.355 -50.082  1.00102.62           C  
+ANISOU    8  C   LYS A   2    11154  17351  10487  -3902  -1957   1754       C  
+ATOM      9  O   LYS A   2      44.490 -57.197 -48.938  1.00102.39           O  
+ANISOU    9  O   LYS A   2    11226  17286  10390  -3839  -2081   1648       O  
+ATOM     10  CB  LYS A   2      44.623 -59.434 -51.489  1.00 99.42           C  
+ANISOU   10  CB  LYS A   2    10308  17127  10339  -3889  -1703   1288       C  
+ATOM     11  CG  LYS A   2      43.145 -59.453 -51.112  1.00 96.87           C  
+ANISOU   11  CG  LYS A   2    10300  16530   9974  -3799  -1723   1117       C  
+ATOM     12  CD  LYS A   2      42.791 -60.611 -50.191  1.00 94.66           C  
+ANISOU   12  CD  LYS A   2     9687  16238  10040  -3605  -1645    977       C  
+ATOM     13  CE  LYS A   2      41.283 -60.770 -50.054  1.00 91.52           C  
+ANISOU   13  CE  LYS A   2     9641  15734   9398  -3337  -1544    876       C  
+ATOM     14  NZ  LYS A   2      40.642 -61.251 -51.311  1.00 89.51           N  
+ANISOU   14  NZ  LYS A   2     9243  15549   9216  -3138  -1301    844       N  
+ATOM     15  N   ARG A   3      44.900 -56.412 -51.024  1.00103.32           N  
+ANISOU   15  N   ARG A   3    11276  17418  10563  -3934  -1934   1837       N  
+ATOM     16  CA  ARG A   3      44.266 -55.105 -50.867  1.00100.15           C  
+ANISOU   16  CA  ARG A   3    11065  17164   9823  -4205  -2191   1823       C  
+ATOM     17  C   ARG A   3      43.896 -54.598 -52.265  1.00 96.12           C  
+ANISOU   17  C   ARG A   3    10265  16673   9581  -4191  -1831   1664       C  
+ATOM     18  O   ARG A   3      44.756 -54.502 -53.145  1.00 96.62           O  
+ANISOU   18  O   ARG A   3    10573  16720   9417  -4273  -1766   1789       O  
+ATOM     19  CB  ARG A   3      45.197 -54.139 -50.115  1.00101.74           C  
+ANISOU   19  CB  ARG A   3    11201  17105  10350  -4372  -2090   1648       C  
+ATOM     20  CG  ARG A   3      44.903 -52.653 -50.269  1.00101.66           C  
+ANISOU   20  CG  ARG A   3    11256  16929  10440  -4379  -1988   1389       C  
+ATOM     21  CD  ARG A   3      45.929 -51.994 -51.179  1.00105.45           C  
+ANISOU   21  CD  ARG A   3    11337  18029  10700  -4645  -1937   1616       C  
+ATOM     22  NE  ARG A   3      45.937 -50.537 -51.056  1.00109.48           N  
+ANISOU   22  NE  ARG A   3    12037  18153  11405  -4549  -2085   1341       N  
+ATOM     23  CZ  ARG A   3      46.638 -49.856 -50.152  1.00112.92           C  
+ANISOU   23  CZ  ARG A   3    12355  18962  11586  -4461  -2492   1155       C  
+ATOM     24  NH1 ARG A   3      47.398 -50.489 -49.266  1.00112.64           N  
+ANISOU   24  NH1 ARG A   3    12625  18386  11786  -4314  -2577   1056       N  
+ATOM     25  NH2 ARG A   3      46.574 -48.532 -50.131  1.00115.14           N  
+ANISOU   25  NH2 ARG A   3    12615  18974  12158  -4771  -2414    900       N  
+ATOM     26  N   GLY A   4      42.616 -54.287 -52.459  1.00 90.64           N  
+	

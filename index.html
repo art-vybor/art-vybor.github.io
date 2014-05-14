@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Molecule Render</title>
+        <script src="js/lib/three.js"></script>
+        <script src="js/lib/TrackballControls.js"></script>
+        <script src="js/lib/stats.min.js"></script>
+        
+        <script src="js/src/CPK.js"></script>       
+        <script src="js/src/MoleculeStructures.js"></script>
+        <script src="js/src/Renderer.js"></script>
+        <style>
+            #drawDiv {
+                height:100%;
+                width:100%; 
+                margin:0;
+                padding:0;
+                
+                background-color: #CCCCCC;
+            }
+            html, body, table {
+                height:100%;
+                width:100%;
+                margin:0;
+                padding:0;
+                border-collapse: collapse;
+            }
+
+            #header {
+                text-decoration: underline;
+                font-size:20px;                
+            }
+
+            #preferenceDiv {
+                margin: 5px 0px 10px 5px;
+                border:1px solid black;
+                border-radius: 10px;
+                padding: 10px;
+            }
+
+        </style>
+    </head>
+    <body onload="setProperty()">		
+        <table>
+            <td style="vertical-align:top; width:200px;">    
+                <div id='preferenceDiv'>            
+                    <div id='header'>Загрузка файла:</div>
+                    <input type="file" name="uploadFile" id="uploadFile"/> <br />
+                    <input type="button" value="Загрузить" onclick="CheckAndSubmit()"/> <br />
+                </div>
+                <div id='preferenceDiv'>            
+                    <div id='header'>Настройки:</div>
+                    Режим <select name='mode' id='modeChecker'>
+                        <option selected="selected" value="ribbon">ribbon</option>
+                        <option value="balls">balls</option>
+                        <option value="bonds">bonds</option>
+                        <option value="ballsAndBonds">balls & bonds</option>
+                    </select> <br />
+                    Качество <select name='quality' id='qualityChecker'>
+                        <option selected="selected" value="high">high</option>
+                        <option value="medium">medium</option>
+                        <option value="low">low</option>
+                    </select> <br />
+                    Включить сглаживание <input type="checkbox" checked="checked" name='antialiasFlag' id='antialiasFlagChecker'> 
+                    <input type="submit" onClick="setProperty();" value="Применить">            
+                </div>
+            </td>
+            <td style="padding:0;">
+                <div id='drawDiv'></div>
+            </td>
+        </table>
+
+        <script type="text/javaScript">
+            var molecule;
+            var mode;
+            var quality;
+            var antialiasFlag;
+
+            function setProperty() {
+                mode = document.getElementById("modeChecker").value;
+                quality = document.getElementById("qualityChecker").value;
+                antialiasFlag = document.getElementById("antialiasFlagChecker").checked;
+                console.log('set property', mode, quality, antialiasFlag);
+
+                buildSceneAndDraw(molecule);
+            }
+
+            function CheckAndSubmit () {            
+                var uploadFile = document.getElementById ("uploadFile");
+
+                if (uploadFile.value.length == 0) {
+                    alert ("Выберите файл");
+                    return;
+                }                
+
+                f = uploadFile.files[0];
+                var r = new FileReader();
+
+                r.onload = function(e) { 
+                    var file = e.target.result;
+
+                    molecule = new Molecule();
+                    molecule.parsePDBFile(file);
+                    molecule.moveToCenter();        
+
+                    buildSceneAndDraw(molecule);
+                    animate();
+                }
+
+                r.readAsText(f);
+            }
+        </script>
+    </body>
+</html>
