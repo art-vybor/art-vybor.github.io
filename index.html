@@ -32,15 +32,15 @@
             }
 
             #preferenceDiv {
-                margin: 5px 0px 10px 5px;
+                margin: 5px 5px 5px 5px;
                 border:1px solid black;
-                border-radius: 10px;
+                border-radius: 5px;
                 padding: 10px;
             }
 
         </style>
     </head>
-    <body onload="setProperty()">		
+    <body onload="init();">		
         <table>
             <td style="vertical-align:top; width:200px;">    
                 <div id='preferenceDiv'>            
@@ -62,7 +62,7 @@
                         <option value="low">low</option>
                     </select> <br />
                     Включить сглаживание <input type="checkbox" checked="checked" name='antialiasFlag' id='antialiasFlagChecker'> 
-                    <input type="submit" onClick="setProperty();" value="Применить">            
+                    <input type="submit" onClick="setProperty(); buildSceneAndDraw(molecule);" value="Применить">            
                 </div>
             </td>
             <td style="padding:0;">
@@ -76,13 +76,29 @@
             var quality;
             var antialiasFlag;
 
+            function init() {
+                setProperty()
+
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = process;
+                xhr.open("GET", "https://raw.githubusercontent.com/art-vybor/art-vybor.github.io/master/samples/I3.pdb", true);
+                xhr.send();
+
+                function process() {
+                    if (xhr.readyState == 4) {
+                        var resp = JSON.parse(xhr.responseText);
+                        console.log(resp);
+                        // resp now has the text and you can process it.
+                        alert(resp);
+                    }
+                }
+            }
+
             function setProperty() {
                 mode = document.getElementById("modeChecker").value;
                 quality = document.getElementById("qualityChecker").value;
                 antialiasFlag = document.getElementById("antialiasFlagChecker").checked;
                 console.log('set property', mode, quality, antialiasFlag);
-
-                buildSceneAndDraw(molecule);
             }
 
             function CheckAndSubmit () {            
