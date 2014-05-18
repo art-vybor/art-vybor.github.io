@@ -23,7 +23,7 @@
 	this.getRadius = function() {
 		if (CPK[this.element]['color'])
 			return parseInt(CPK[this.element]['size'], 10) * 1.0 / 100;
-		 {
+		else {
 			console.log('unrecognized radius in atom: ' + this.element);
 			return 1;
 		}	

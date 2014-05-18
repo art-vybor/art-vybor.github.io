@@ -60,11 +60,12 @@
                         <option value="ballsAndBonds">balls & bonds</option>
                     </select> <br />
                     Качество <select name='quality' id='qualityChecker'>
-                        <option selected="selected" value="high">high</option>
+                        <option value="high">high</option>
                         <option value="medium">medium</option>
-                        <option value="low">low</option>
+                        <option selected="selected" value="low">low</option>
                     </select> <br />
-                    Включить сглаживание <input type="checkbox" checked="checked" name='antialiasFlag' id='antialiasFlagChecker'> 
+                    <!--checked="checked"-->
+                    Включить сглаживание <input type="checkbox" name='antialiasFlag' id='antialiasFlagChecker'> 
                     <input type="submit" onClick="setProperty(); buildSceneAndDraw(molecule);" value="Применить">            
                 </div>
             </td>
