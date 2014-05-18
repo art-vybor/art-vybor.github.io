@@ -10,6 +10,8 @@
         <script src="js/src/MoleculeStructures.js"></script>
         <script src="js/src/Renderer.js"></script>
         <script src="http://jqueryjs.googlecode.com/files/jquery-1.3.2.js" ></script>
+
+        <script src="samples/1ZEH.js"></script>
         <style>
             #drawDiv {
                 height:100%;
@@ -41,7 +43,7 @@
 
         </style>
     </head>
-    <body onload="init();">		
+    <body onload="init();">
         <table>
             <td style="vertical-align:top; width:200px;">    
                 <div id='preferenceDiv'>            
@@ -78,23 +80,13 @@
             var antialiasFlag;
 
             function init() {
-                setProperty()
-                $.get("www.google.com", function(response) { alert(response) });
-/*
-                var xhr = new XMLHttpRequest();
-                xhr.onreadystatechange = process;
-                xhr.open("GET", "https://raw.githubusercontent.com/art-vybor/art-vybor.github.io/master/samples/I3.pdb", true);
-                xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
-                xhr.send();
+                setProperty();
+                molecule = new Molecule();
+                molecule.parsePDBFile(pdb1ZEH);
+                molecule.moveToCenter();
 
-                function process() {
-                    if (xhr.readyState == 4) {
-                        var resp = JSON.parse(xhr.responseText);
-                        console.log(resp);
-                        // resp now has the text and you can process it.
-                        alert(resp);
-                    }
-                }*/
+                buildSceneAndDraw(molecule);
+                animate();     
             }
 
             function setProperty() {
