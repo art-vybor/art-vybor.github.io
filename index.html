@@ -5,11 +5,13 @@
         <script src="js/lib/three.js"></script>
         <script src="js/lib/TrackballControls.js"></script>
         <script src="js/lib/stats.min.js"></script>
+        <script src="js/lib/jquery-1.11.1.js"></script>
         
         <script src="js/src/CPK.js"></script>       
         <script src="js/src/MoleculeStructures.js"></script>
         <script src="js/src/Renderer.js"></script>
-        <script src="http://jqueryjs.googlecode.com/files/jquery-1.3.2.js" ></script>
+        
+
 
         <script src="samples/1ZEH.js"></script>
         <style>
@@ -47,23 +49,27 @@
         <table>
             <td style="vertical-align:top; width:200px;">    
                 <div id='preferenceDiv'>            
-                    <div id='header'>Загрузка файла:</div>
+                    <div id='header'>Загрузите молекулу:</div>
+                    Введите SMILES: <br />
+                    <input type="text" name="smiles" id="smiles"> <br />
+                    Или выберите файл: <br />
                     <input type="file" name="uploadFile" id="uploadFile"/> <br />
-                    <input type="button" value="Загрузить" onclick="CheckAndSubmit()"/> <br />
+                    <input type="button" value="Отрисовать" id="loadButton" onclick="getNewMoleculeAndDraw()"/> <br />
                 </div>
                 <div id='preferenceDiv'>            
                     <div id='header'>Настройки:</div>
                     Режим <select name='mode' id='modeChecker'>
                         <option selected="selected" value="ribbon">ribbon</option>
                         <option value="balls">balls</option>
-                        <option value="bonds">bonds</option>
+                        <option value="lightBonds">lightBonds</option>
+                        <option value="bonds">bonds</option>                       
                         <option value="ballsAndBonds">balls & bonds</option>
                     </select> <br />
                     Качество <select name='quality' id='qualityChecker'>
                         <option value="high">high</option>
                         <option value="medium">medium</option>
                         <option selected="selected" value="low">low</option>
-                    </select> <br />
+                        </select> <br />
                     <!--checked="checked"-->
                     Включить сглаживание <input type="checkbox" name='antialiasFlag' id='antialiasFlagChecker'> 
                     <input type="submit" onClick="setProperty(); buildSceneAndDraw(molecule);" value="Применить">            
@@ -97,29 +103,65 @@
                 console.log('set property', mode, quality, antialiasFlag);
             }
 
-            function CheckAndSubmit () {            
+            function getNewMoleculeAndDraw(){
+                document.getElementById("loadButton").disabled = true; 
                 var uploadFile = document.getElementById ("uploadFile");
+                var smiles = document.getElementById ("smiles");
 
-                if (uploadFile.value.length == 0) {
-                    alert ("Выберите файл");
-                    return;
-                }                
+                if (smiles.value.length != 0) {
+                    drawMolecule('smi', smiles.value);
+                } else if (uploadFile.value.length != 0) {
+                    var r = new FileReader();
+                    f = uploadFile.files[0];
 
-                f = uploadFile.files[0];
-                var r = new FileReader();
+                    r.onload = function(e) { 
+                        var file = e.target.result;
+                        drawMolecule(getSuffix(f.name), file);
+                    }
 
-                r.onload = function(e) { 
-                    var file = e.target.result;
-
-                    molecule = new Molecule();
-                    molecule.parsePDBFile(file);
-                    molecule.moveToCenter();        
-
-                    buildSceneAndDraw(molecule);
-                    animate();
+                    r.readAsText(f);
+                } else {
+                    alert('Вы должны ввести SMILES или выбрать файл');
                 }
+            }
 
-                r.readAsText(f);
+            function drawMolecule(type, data) {
+                if (type == 'pdb') {
+                   drawPDBMolecule(data);
+                } else {
+                    convertMoleculeAndDraw(type, data);
+                }
+            }
+
+            function getSuffix(filename) {
+                return filename.split('.').pop();
+            }
+
+            function convertMoleculeAndDraw(file_type, file) {
+                $.post("http://127.0.0.1:8080/",
+                    {
+                        type: file_type,
+                        data: file
+                    },
+                    function(data, textStatus)
+                    {
+                        console.log(data.substr(0,5));
+                        if (data.substr(0,5) != 'ERROR')
+                            drawPDBMolecule(data);
+                        else
+                            alert('Данный формат файла на распознаётся сервером');
+                    }
+                );
+            }
+
+            function drawPDBMolecule(data) {
+                molecule = new Molecule();
+                molecule.parsePDBFile(data);
+                molecule.moveToCenter();        
+
+                buildSceneAndDraw(molecule);
+                animate();
+                document.getElementById("loadButton").disabled = false; 
             }
         </script>
     </body>

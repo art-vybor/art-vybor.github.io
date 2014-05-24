@@ -24,27 +24,24 @@ function draw(scene, molecule) {
 
 	if (mode == 'balls') {		
 		drawBalls(scene, molecule, quality);	
+	} else if (mode == 'lightBonds') {
+		drawBonds(scene, molecule, atoms, false, quality, true);
 	} else if (mode == 'bonds') {
-		drawBonds(scene, molecule, atoms, false, quality);
+		drawBonds(scene, molecule, atoms, false, quality, false);
 	} else if (mode == 'ballsAndBonds') {
 		drawBonds(scene, molecule, atoms, true, quality);
-	} else if (mode == 'ribbon')
+	} else if (mode == 'ribbon') {
 		drawRibbon(scene, molecule, atoms);
-
-		console.log(atoms.length);
-
 		atoms = []
 
 		for (var i in molecule.atoms) {
 			if (molecule.atoms[i].hetflag) {
-    			atoms.push(molecule.atoms[i].serial);
-    			
+    			atoms.push(molecule.atoms[i].serial);	
     		}
    		}	
-
-   		console.log(atoms.length);
-
    		drawBonds(scene, molecule, atoms, true, quality);
+	}
+   	
 }
 
 function drawBalls(scene, molecule, quality) {
@@ -56,7 +53,7 @@ function drawBalls(scene, molecule, quality) {
 	}
 }
 
-function drawBonds(scene, molecule, atoms, withBalls, quality) {	
+function drawBonds(scene, molecule, atoms, withBalls, quality, lightBonds) {	
 	var nAtoms = atoms.length;
 
 	for (var _i = 0; _i < nAtoms; _i++) {
@@ -69,7 +66,10 @@ function drawBonds(scene, molecule, atoms, withBalls, quality) {
 			if (bondAtom == undefined) continue;
 
 			if (isConnected(atom, bondAtom))
-				addStickSub(scene, atom, bondAtom, withBalls, quality);
+				if (!lightBonds)
+					addStickSub(scene, atom, bondAtom, withBalls, quality);
+				else
+					addLightStickSub(scene, atom, bondAtom);
 		}
 		for (var _j = 0; _j < atom.bonds.length; _j++) {
 			var j = atom.bonds[_j];
@@ -77,7 +77,11 @@ function drawBonds(scene, molecule, atoms, withBalls, quality) {
 			if (atoms.indexOf(j) == -1) continue;
 			var bondAtom = molecule.atoms[j];
 			if (bondAtom == undefined) continue;
-			addStickSub(scene, atom, bondAtom, withBalls, quality);
+
+			if (!lightBonds)
+				addStickSub(scene, atom, bondAtom, withBalls, quality);
+			else
+				addLightStickSub(scene, atom, bondAtom);
 		}
     }
 }
@@ -121,7 +125,6 @@ function drawRibbon(scene, molecule, atomlist) {
 		}
 	}
 	a = THREE.Object3D();
-	console.log(points[0]);
 	this.drawStrip(scene, points[0], points[1], div);
 	scene.add(a);
 }
@@ -171,6 +174,16 @@ function addStickSub(scene, atom1, atom2, withBalls, quality) {
 	}
 }
 
+function addLightStickSub(scene, atom1, atom2) {	
+	var point1 = new THREE.Vector3(atom1.x, atom1.y, atom1.z);
+	var point2 = new THREE.Vector3(atom2.x, atom2.y, atom2.z);
+	
+	var center = point2.clone().add(point1).multiplyScalar(0.5);
+	addLine(scene, point1, center, atom1.getColor())
+	addLine(scene, point2, center, atom2.getColor())
+}
+
+
 function isConnected(atom, bondAtom) {
 	var s = atom.bonds.indexOf(bondAtom.serial);
    	if (s != -1) return true;
@@ -199,6 +212,16 @@ function addAtom(scene, atom, quality, radius) {
 	return atomMesh;
 }
 
+function addLine(scene, point1, point2, color) {
+	var material = new THREE.LineBasicMaterial({'color': color});	
+	var geometry = new THREE.Geometry();
+	geometry.vertices.push(point1.clone());
+	geometry.vertices.push(point2.clone());
+	var line = new THREE.Line(geometry, material);
+
+	scene.add(line)
+}
+
 function addCylinder(scene, point1, point2, color, quality) {
 	var length = point2.clone().sub(point1).length();	
 
@@ -216,7 +239,6 @@ function addCylinder(scene, point1, point2, color, quality) {
 	cylinderMesh.rotateOnAxis(axis.normalize(), angle);
 
 	scene.add(cylinderMesh)
-
 }
 
 //-------------------------------------------------------

@@ -63,10 +63,7 @@ function Molecule () {
 			var element = line.substr(76, 2).trim();
 			if (element == '') element = name; // for some incorrect PDB files
 			var atom = new Atom(hetflag, serial, name, chain, resSeq, x, y ,z, element);
-			if (serial == 1)
-				console.log(atom.x, x);
 			this.atoms[serial] = atom;
-			//console.log(this.atoms[serial].x, this.atoms[serial],)
 
 		} else if (recordName == "CONECT") {
 			var from = parseInt(line.substr(6, 5));
