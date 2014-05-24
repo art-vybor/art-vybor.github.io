@@ -10,8 +10,6 @@
         <script src="js/src/CPK.js"></script>       
         <script src="js/src/MoleculeStructures.js"></script>
         <script src="js/src/Renderer.js"></script>
-        
-
 
         <script src="samples/1ZEH.js"></script>
         <style>
@@ -44,6 +42,10 @@
             }
 
         </style>
+        <script>
+            SERVER_ADDR = 'http://localhost:5000/'
+        </script>
+
     </head>
     <body onload="init();">
         <table>
@@ -54,7 +56,7 @@
                     <input type="text" name="smiles" id="smiles"> <br />
                     Или выберите файл: <br />
                     <input type="file" name="uploadFile" id="uploadFile"/> <br />
-                    <input type="button" value="Отрисовать" id="loadButton" onclick="getNewMoleculeAndDraw()"/> <br />
+                    <input type="button" value="Отрисовать" id="loadButton" onclick="getNewMoleculeAndDraw()" disabled/> <br />
                 </div>
                 <div id='preferenceDiv'>            
                     <div id='header'>Настройки:</div>
@@ -88,12 +90,7 @@
 
             function init() {
                 setProperty();
-                molecule = new Molecule();
-                molecule.parsePDBFile(pdb1ZEH);
-                molecule.moveToCenter();
-
-                buildSceneAndDraw(molecule);
-                animate();     
+                drawPDBMolecule(pdb1ZEH);
             }
 
             function setProperty() {
@@ -104,7 +101,7 @@
             }
 
             function getNewMoleculeAndDraw(){
-                document.getElementById("loadButton").disabled = true; 
+                setLoadButtonDisabled(true); 
                 var uploadFile = document.getElementById ("uploadFile");
                 var smiles = document.getElementById ("smiles");
 
@@ -122,6 +119,7 @@
                     r.readAsText(f);
                 } else {
                     alert('Вы должны ввести SMILES или выбрать файл');
+                    setLoadButtonDisabled(false);; 
                 }
             }
 
@@ -138,21 +136,23 @@
             }
 
             function convertMoleculeAndDraw(file_type, file) {
-                $.post("http://127.0.0.1:8080/",
-                    {
-                        type: file_type,
-                        data: file
-                    },
-                    function(data, textStatus)
-                    {
-                        console.log(data.substr(0,5));
-                        if (data.substr(0,5) != 'ERROR')
-                            drawPDBMolecule(data);
-                        else
-                            alert('Данный формат файла на распознаётся сервером');
-                            document.getElementById("loadButton").disabled = false; 
+                $.post(SERVER_ADDR,{
+                    type: file_type,
+                    data: file
+                }).success(function(data, textStatus) {
+                    if (data.substr(0,5) != 'ERROR')
+                        drawPDBMolecule(data);
+
+                    else {
+                        alert('Ошибка сервера.\n' + data);
+                        setLoadButtonDisabled(false);
                     }
-                );
+
+                }).error(function() {                         
+                    alert("Ошибка подключения к серверу");
+                    setLoadButtonDisabled(false);
+
+                });
             }
 
             function drawPDBMolecule(data) {
@@ -162,7 +162,12 @@
 
                 buildSceneAndDraw(molecule);
                 animate();
-                document.getElementById("loadButton").disabled = false; 
+
+                setLoadButtonDisabled(false);
+            }
+
+            function setLoadButtonDisabled(disabled) {
+                document.getElementById("loadButton").disabled = disabled;
             }
         </script>
     </body>
