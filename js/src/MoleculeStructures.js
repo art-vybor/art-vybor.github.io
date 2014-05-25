@@ -9,8 +9,14 @@
 	this.z = z;
 	this.element = element;
 	this.bonds = [];	
-
+  	this.ElementColors = {"H": 0xCCCCCC, "C": 0xAAAAAA, "O": 0xCC0000, "N": 0x0000CC, "S": 0xCCCC00, "P": 0x6622CC,
+                         "F": 0x00CC00, "CL": 0x00CC00, "BR": 0x882200, "I": 0x6600AA,
+                         "FE": 0xCC6600, "CA": 0x8888AA};
 	this.getColor = function() {
+		if (this.element in this.ElementColors) 
+			return this.ElementColors[this.element];
+
+
 		if (this.element in CPK)
 			return '#' + CPK[this.element]['color'];
 		else {

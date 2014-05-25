@@ -18,6 +18,8 @@ var RESTRICTION = {
 }
 
 RESTRICTION.check = function(molecule, mode) {
+	return true;
+	//if (mode in restriction) return true;
 	if (molecule.atoms.length > RESTRICTION[mode]) return false;
 	return true;
 }
@@ -30,7 +32,6 @@ RESTRICTION.toString = function() {
 	var res = '';
 	for (i in KINDS_OF_MODE)
 		res += getRestrictionRow(KINDS_OF_MODE[i]);
-	//res += getRestrictionRow('ribbon');
 
 	return res
 }
@@ -59,6 +60,8 @@ function draw(scene, molecule) {
 		drawBonds(scene, molecule, atoms, true, quality);
 	} else if (mode == 'ribbon') {
 		drawRibbon(scene, molecule, atoms);
+	} else if (mode == 'ribbon_experimental') {
+		drawRibbonExperimental(scene, molecule, atoms);
 	}
 
 	if (hetAtomFlag) {
@@ -73,7 +76,143 @@ function draw(scene, molecule) {
 	}
 
 }
+var TV3 = THREE.Vector3, TF3 = THREE.Face3, TCo = THREE.Color;
 
+function drawRibbonExperimental(group, molecule, atomlist) {
+	num = 2;
+	div = 5;
+	coilWidth = 0.3;
+	fill = true;
+	doNotSmoothen = false;
+	helixSheetWidth = 1.3;
+	thickness  = 1;
+	var points = []; for (var k = 0; k < num; k++) points[k] = [];
+	var colors = [];
+	var currentChain, currentResi, currentCA;
+	var prevCO = null; //ss=null, ssborder = false;
+	console.log(atomlist, molecule);
+	for (var i in atomlist) {
+
+		var atom = molecule.atoms[atomlist[i]];
+		if (atom == undefined) continue;
+
+		if ((atom.name == 'O' || atom.name == 'CA') && !atom.hetflag) {
+			//console.log(atom);
+			if (atom.name == 'CA') {
+				//console.log('CA');
+				if (currentChain != atom.chain || currentResi + 1 != atom.resSeq) {
+					for (var j = 0; !thickness && j < num; j++)
+						drawSmoothCurve(group, points[j], 1 ,colors, div);
+					if (fill) drawStrip1(group, points[0], points[num - 1], colors, div, thickness);
+					var points = []; for (var k = 0; k < num; k++) points[k] = [];
+					colors = [];
+					prevCO = null; //ss = null; ssborder = false;
+				}
+			currentCA = new TV3(atom.x, atom.y, atom.z);
+			currentChain = atom.chain;
+			currentResi = atom.resSeq;
+			//ss = atom.ss; ssborder = atom.ssstart || atom.ssend;
+			colors.push(atom.getColor());
+			} else { // O
+				//console.log('O');
+				var O = new TV3(atom.x, atom.y, atom.z);
+				O.sub(currentCA);
+				O.normalize(); // can be omitted for performance
+				//O.multiplyScalar((ss == 'c') ? coilWidth : helixSheetWidth); 
+				if (prevCO != undefined && O.dot(prevCO) < 0) O.negate();
+				prevCO = O;
+				for (var j = 0; j < num; j++) {
+					var delta = -1 + 2 / (num - 1) * j;
+					var v = new TV3(currentCA.x + prevCO.x * delta, 
+						currentCA.y + prevCO.y * delta, currentCA.z + prevCO.z * delta);
+					//if (!doNotSmoothen && ss == 's') v.smoothen = true;
+					points[j].push(v);
+				}                         
+			}
+		}
+	}
+	for (var j = 0; !thickness && j < num; j++)
+		drawSmoothCurve(group, points[j], 1 ,colors, div);
+	console.log(points);
+	if (fill) this.drawStrip1(group, points[0], points[num - 1], colors, div, thickness);
+};
+
+
+function drawSmoothCurve(group, _points, width, colors, div) {
+   if (_points.length == 0) return;
+
+   div = (div == undefined) ? 5 : div;
+
+   var geo = new THREE.Geometry();
+   var points = this.subdivide(_points, div);
+
+   for (var i = 0; i < points.length; i++) {
+      geo.vertices.push(points[i]);
+      geo.colors.push(new TCo(colors[(i == 0) ? 0 : Math.round((i - 1) / div)]));
+  }
+  var lineMaterial = new THREE.LineBasicMaterial({linewidth: width});
+  lineMaterial.vertexColors = true;
+  var line = new THREE.Line(geo, lineMaterial);
+  line.type = THREE.LineStrip;
+  group.add(line);
+};
+
+function drawStrip1(group, p1, p2, colors, div, thickness) {
+	console.log(colors);
+   if ((p1.length) < 2) return;
+   div = div || this.axisDIV;
+   p1 = subdivide(p1, div);
+   p2 = subdivide(p2, div);
+   //if (true) return drawThinStrip(group, p1, p2, colors, div);
+
+   var geo = new THREE.Geometry();
+   var vs = geo.vertices, fs = geo.faces;
+   var axis, p1v, p2v, a1v, a2v;
+   for (var i = 0, lim = p1.length; i < lim; i++) {
+      vs.push(p1v = p1[i]); // 0
+      vs.push(p1v); // 1
+      vs.push(p2v = p2[i]); // 2
+      vs.push(p2v); // 3
+      if (i < lim - 1) {
+         var toNext = p1[i + 1].clone().sub(p1[i]);
+         var toSide = p2[i].clone().sub(p1[i]);
+         axis = toSide.cross(toNext).normalize().multiplyScalar(thickness);
+      }
+      vs.push(a1v = p1[i].clone().add(axis)); // 4
+      vs.push(a1v); // 5
+      vs.push(a2v = p2[i].clone().add(axis)); // 6
+      vs.push(a2v); // 7
+   }
+   var faces = [[0, 2, -6, -8], [-4, -2, 6, 4], [7, 3, -5, -1], [-3, -7, 1, 5]];
+   for (var i = 1, lim = p1.length; i < lim; i++) {
+      var offset = 8 * i, color = new TCo(colors[Math.round((i - 1)/ div)]);
+      for (var j = 0; j < 4; j++) {
+         //var f = new THREE.Face4(offset + faces[j][0], offset + faces[j][1], offset + faces[j][2], offset + faces[j][3], undefined, color);
+         Face4(fs, offset + faces[j][0], offset + faces[j][1], offset + faces[j][2], offset + faces[j][3], undefined, color);
+         //fs.push(f);
+      }
+   }
+   var vsize = vs.length - 8; // Cap
+   for (var i = 0; i < 4; i++) {vs.push(vs[i * 2]); vs.push(vs[vsize + i * 2])};
+   vsize += 8;
+   Face4(fs, vsize, vsize + 2, vsize + 6, vsize + 4, undefined, fs[0].color);
+   Face4(fs, vsize + 1, vsize + 5, vsize + 7, vsize + 3, undefined, fs[fs.length - 3].color);
+   geo.computeFaceNormals();
+   geo.computeVertexNormals(false);
+   var material =  new THREE.MeshLambertMaterial();
+   material.vertexColors = THREE.FaceColors;
+   material.side = THREE.DoubleSide;
+   var mesh = new THREE.Mesh(geo, material);
+   group.add(mesh);
+};
+
+function Face4(geo, a,b,c,d, color) {
+	var f = new THREE.Face3(a,b,c, undefined, color);
+	geo.push(f);
+	f = new THREE.Face3(a, c,d, undefined, color);
+	geo.push(f);
+
+}
 
 function addToObjectMap(key, value) {
 	objectMap[key.id] = value;
@@ -166,8 +305,8 @@ function drawRibbon(scene, molecule, atomlist) {
 function drawStrip(scene, p1, p2, div) {
     if ((p1.length) < 2) return;
 
-   	p1 = this.subdivide(p1, div);
-   	p2 = this.subdivide(p2, div);
+   	p1 = subdivide(p1, div);
+   	p2 = subdivide(p2, div);
 
 	var geo = new THREE.Geometry();
 	for (var i = 0, lim = p1.length; i < lim; i++) {
