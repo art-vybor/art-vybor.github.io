@@ -13,12 +13,16 @@
                          "F": 0x00CC00, "CL": 0x00CC00, "BR": 0x882200, "I": 0x6600AA,
                          "FE": 0xCC6600, "CA": 0x8888AA};
 	this.getColor = function() {
-		if (this.element in this.ElementColors) 
-			return this.ElementColors[this.element];
+		//console.log(this.element, CPK[this.element], this.ElementColors[this.element])
+
+
+
+		//if (this.element in this.ElementColors) 
+			//return this.ElementColors[this.element];
 
 
 		if (this.element in CPK)
-			return '#' + CPK[this.element]['color'];
+			return parseInt(CPK[this.element]['color'], 16);
 		else {
 			console.log('unrecognized atom: ' + this.element);
 			return '#000000';

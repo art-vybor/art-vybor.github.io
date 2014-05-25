@@ -90,7 +90,6 @@ function drawRibbonExperimental(group, molecule, atomlist) {
 	var colors = [];
 	var currentChain, currentResi, currentCA;
 	var prevCO = null; //ss=null, ssborder = false;
-	console.log(atomlist, molecule);
 	for (var i in atomlist) {
 
 		var atom = molecule.atoms[atomlist[i]];
@@ -188,7 +187,7 @@ function drawStrip1(group, p1, p2, colors, div, thickness) {
       var offset = 8 * i, color = new TCo(colors[Math.round((i - 1)/ div)]);
       for (var j = 0; j < 4; j++) {
          //var f = new THREE.Face4(offset + faces[j][0], offset + faces[j][1], offset + faces[j][2], offset + faces[j][3], undefined, color);
-         Face4(fs, offset + faces[j][0], offset + faces[j][1], offset + faces[j][2], offset + faces[j][3], undefined, color);
+         Face4(fs, offset + faces[j][0], offset + faces[j][1], offset + faces[j][2], offset + faces[j][3], color);
          //fs.push(f);
       }
    }
@@ -212,11 +211,6 @@ function Face4(geo, a,b,c,d, color) {
 	f = new THREE.Face3(a, c,d, undefined, color);
 	geo.push(f);
 
-}
-
-function addToObjectMap(key, value) {
-	objectMap[key.id] = value;
-	objectMapKeys.push(key);
 }
 
 function drawBalls(scene, molecule, atoms, quality) {
@@ -645,4 +639,9 @@ function subdivide(_points, DIV) { // points as Vector3
    }
    ret.push(points[points.length - 1]);
    return ret;
-};
+}
+
+function addToObjectMap(key, value) {
+	objectMap[key.id] = value;
+	objectMapKeys.push(key);
+}
