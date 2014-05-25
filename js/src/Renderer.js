@@ -142,7 +142,6 @@ function drawRibbonExperimental(group, molecule, atomlist) {
 			}
 		}
 	}
-	console.log(colors);
 	for (var j = 0; !thickness && j < num; j++)
 		drawSmoothCurve(group, points[j], 1 ,colors, div);
 	
@@ -234,7 +233,6 @@ function drawBalls(scene, molecule, atoms, quality) {
 
 function drawBonds(scene, molecule, atoms, withBalls, quality, lightBonds) {	
 	var nAtoms = atoms.length;
-	console.log(atoms);
 
 	for (var _i = 0; _i < nAtoms; _i++) {
 		var i = atoms[_i];
@@ -501,7 +499,6 @@ function onDocumentMouseDown( event ) {
 
 	if (intersects.length > 0) {
 		//intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
-		console.log(objectMap[intersects[0].object.id]);
 		dislayAtomInformation(objectMap[intersects[0].object.id]);
 		render();
 	}
