@@ -264,7 +264,7 @@ function buildSceneAndDraw(molecule) {
 	controls.panSpeed = 0.8;
 	controls.noZoom = false;
 	controls.noPan = false;
-	controls.staticMoving = true;
+	controls.staticMoving = false;
 	controls.dynamicDampingFactor = 0.3;
 	controls.keys = [ 65, 83, 68 ];
 	controls.addEventListener( 'change', render );

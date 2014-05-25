@@ -74,7 +74,7 @@
                         </select> <br />
                     <!--checked="checked"-->
                     Включить сглаживание <input type="checkbox" name='antialiasFlag' id='antialiasFlagChecker'> 
-                    <input type="submit" onClick="setProperty(); buildSceneAndDraw(molecule);" value="Применить">            
+                    <input type="submit" onClick="reDraw();" value="Применить">            
                 </div>
             </td>
             <td style="padding:0;">
@@ -98,6 +98,13 @@
                 quality = document.getElementById("qualityChecker").value;
                 antialiasFlag = document.getElementById("antialiasFlagChecker").checked;
                 console.log('set property', mode, quality, antialiasFlag);
+            }
+
+            function reDraw() {
+                setProperty();
+                backUpCamera = new THREE.Vector3().copy(camera.position);
+                buildSceneAndDraw(molecule);
+                camera.position.copy(backUpCamera);
             }
 
             function getNewMoleculeAndDraw(){
