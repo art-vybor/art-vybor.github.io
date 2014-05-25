@@ -1,3 +1,11 @@
+function hereDoc(f) {
+  return f.toString().
+      replace(/^[^\/]+\/\*!?/, '').
+      replace(/\*\/[^\/]+$/, '');
+}
+
+var pdbl3 = hereDoc(function() {/*!
+
 HETATM    1  C                  -3.450  -0.135   0.363
 HETATM    2  C                  -2.116  -0.033  -0.019
 HETATM    3  C                  -1.805   0.087  -1.347
@@ -69,3 +77,5 @@ CONECT   33   31
 CONECT   34   30
 CONECT   35   30
 END
+
+*/});

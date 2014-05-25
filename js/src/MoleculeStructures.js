@@ -11,20 +11,20 @@
 	this.bonds = [];	
 
 	this.getColor = function() {
-		if (CPK[this.element]['color'])
+		if (this.element in CPK)
 			return '#' + CPK[this.element]['color'];
 		else {
-			console.log('unrecognized color in atom: ' + this.element);
+			console.log('unrecognized atom: ' + this.element);
 			return '#000000';
 		}	
 
 	};
 
 	this.getRadius = function() {
-		if (CPK[this.element]['color'])
+		if (this.element in CPK)
 			return parseInt(CPK[this.element]['size'], 10) * 1.0 / 100;
 		else {
-			console.log('unrecognized radius in atom: ' + this.element);
+			console.log('unrecognized atom: ' + this.element);
 			return 1;
 		}	
 	};
@@ -36,6 +36,9 @@
 
 function Molecule () {
 	this.atoms = [];
+	this.classification = '';
+	this.idCode = '';
+
 
 	this.parsePDBFile = function(file) {
 		var lines = file.split('\n');
@@ -49,23 +52,23 @@ function Molecule () {
 	this.parsePDBLine = function(line) {
 		//http://www.wwpdb.org/documentation/format33/sect9.html#ATOM
 		recordName = line.substring(0, 6).trim();
-		if (recordName == "ATOM" || recordName == "HETATM") {			
+		if (recordName == "ATOM" || recordName == "HETATM") {	
 			var hetflag = line[0] == 'H' ? true : false;
 
 			var serial = parseInt(line.substr(6, 5));						
 			var name = line.substr(12, 4).trim();	
 			var chain = line.substr(21, 1);
 			var resSeq = parseInt(line.substr(22, 4));
+
 			var x = parseFloat(line.substr(30, 8));
 			var y = parseFloat(line.substr(38, 8));
 			var z = parseFloat(line.substr(46, 8));
 
 			var element = line.substr(76, 2).trim();
 			if (element == '') element = name; // for some incorrect PDB files
+
 			var atom = new Atom(hetflag, serial, name, chain, resSeq, x, y ,z, element);
-
 			this.atoms[serial] = atom;
-
 		} else if (recordName == "CONECT") {
 			var from = parseInt(line.substr(6, 5));
 
@@ -77,6 +80,9 @@ function Molecule () {
 			  		this.atoms[from].bonds.push(to);
 				}
 			}
+		} else if (recordName == "HEADER") {
+			this.classification = line.substring(10, 50).trim();
+			this.idCode = line.substring(62, 66).trim();
 		}
 	};
 

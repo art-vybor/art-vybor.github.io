@@ -12,6 +12,8 @@
         <script src="js/src/Renderer.js"></script>
 
         <script src="samples/1ZEH.js"></script>
+        <script src="samples/2POR.js"></script>
+        <script src="samples/l3.js"></script>
         <style>
             #drawDiv {
                 height:100%;
@@ -27,18 +29,35 @@
                 margin:0;
                 padding:0;
                 border-collapse: collapse;
+                background-color: #CCCCCC;
             }
 
             #header {
-                text-decoration: underline;
-                font-size:20px;                
+                background-color: #DDD;
+                font-size:20px;
+                border-radius: 5px;
+                padding: 3px;
+                margin: 0px 0px 5px 0px;                
+            }
+
+            #moleculeData, #atomData, #preferenceData {
+                background-color: #EEE;
+                border-radius: 5px;
+                padding: 3px;
             }
 
             #preferenceDiv {
+                font: Verdana;
                 margin: 5px 5px 5px 5px;
-                border:1px solid black;
+                
                 border-radius: 5px;
-                padding: 10px;
+                padding: 5px;
+                background-color: #FFF;
+                box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            }
+
+            #molDrawButton {
+                width: 100%;
             }
 
         </style>
@@ -50,31 +69,57 @@
     <body onload="init();">
         <table>
             <td style="vertical-align:top; width:200px;">    
-                <div id='preferenceDiv'>            
+                <div id='preferenceDiv'> 
                     <div id='header'>Загрузите молекулу:</div>
-                    Введите SMILES: <br />
-                    <input type="text" name="smiles" id="smiles"> <br />
-                    Или выберите файл: <br />
-                    <input type="file" name="uploadFile" id="uploadFile"/> <br />
-                    <input type="button" value="Отрисовать" id="loadButton" onclick="getNewMoleculeAndDraw()" disabled/> <br />
+                    <div id = 'preferenceData'>                              
+                        Введите SMILES: <br />
+                        <input type="text" name="smiles" id="smiles" style="width:98%"> <br />
+                        Или выберите файл: <br />
+                        <input type="file" name="uploadFile" id="uploadFile"/> <br />
+
+                        <input type="button" value="Отрисовать" name="loadButton" onclick="getNewMoleculeAndDraw()"/> <br />
+                    </div>
                 </div>
                 <div id='preferenceDiv'>            
                     <div id='header'>Настройки:</div>
-                    Режим <select name='mode' id='modeChecker'>
-                        <option selected="selected" value="ribbon">ribbon</option>
-                        <option value="balls">balls</option>
-                        <option value="lightBonds">lightBonds</option>
-                        <option value="bonds">bonds</option>                       
-                        <option value="ballsAndBonds">balls & bonds</option>
-                    </select> <br />
-                    Качество <select name='quality' id='qualityChecker'>
-                        <option value="high">high</option>
-                        <option value="medium">medium</option>
-                        <option selected="selected" value="low">low</option>
+                    <div id = 'preferenceData'>
+                        Режим <select name='mode' id='modeChecker'>
+                            <option selected="selected" value="ribbon">ribbon</option>
+                            <option value="balls">balls</option>
+                            <option value="lightBonds">lightBonds</option>
+                            <option value="bonds">bonds</option>                       
+                            <option value="ballsAndBonds">balls & bonds</option>
                         </select> <br />
-                    <!--checked="checked"-->
-                    Включить сглаживание <input type="checkbox" name='antialiasFlag' id='antialiasFlagChecker'> 
-                    <input type="submit" onClick="reDraw();" value="Применить">            
+                        Качество <select name='quality' id='qualityChecker'>
+                            <option value="high">high</option>
+                            <option value="medium">medium</option>
+                            <option selected="selected" value="low">low</option>
+                        </select> <br />
+                        <!--checked="checked"-->
+                        Включить сглаживание <input type="checkbox" name='antialiasFlag' id='antialiasFlagChecker'> 
+                        Включить HetAtoms <input type="checkbox" name='hetAtomFlag' id='hetAtomFlagChecker' checked> 
+
+                        <input type="submit" onClick="reDraw();" value="Применить">            
+                    </div>
+                </div>
+
+                <div id='preferenceDiv'>            
+                    <div id='header'>Информация о молекуле:</div>
+                    <div id='moleculeData'></div>
+                </div>
+
+                <div id='preferenceDiv'>            
+                    <div id='header'>Информация о выделенном атоме:</div>
+                    <div id='atomData'></div>
+                </div>
+
+                <div id='preferenceDiv'>            
+                    <div id='header'>Предзагруженные молекулы:</div>
+                    <div id='preferenceData'>
+                        <input type="button" value="2POR" name="loadButton" id="molDrawButton" onclick="drawMolecule('pdb', pdb2POR);"/> <br />
+                        <input type="button" value="1ZEH" name="loadButton" id="molDrawButton" onclick="drawMolecule('pdb', pdb1ZEH);"/> <br />
+                        <input type="button" value="l3" name="loadButton" id="molDrawButton" onclick="drawMolecule('pdb', pdbl3);"/> <br />
+                    </div>                    
                 </div>
             </td>
             <td style="padding:0;">
@@ -84,19 +129,21 @@
 
         <script type="text/javaScript">
             var molecule;
+
             var mode;
             var quality;
             var antialiasFlag;
+            var hetAtomFlag;
 
             function init() {
                 setProperty();
-                drawPDBMolecule(pdb1ZEH);
             }
 
             function setProperty() {
                 mode = document.getElementById("modeChecker").value;
                 quality = document.getElementById("qualityChecker").value;
                 antialiasFlag = document.getElementById("antialiasFlagChecker").checked;
+                hetAtomFlag = document.getElementById("hetAtomFlagChecker").checked;
                 console.log('set property', mode, quality, antialiasFlag);
             }
 
@@ -108,7 +155,7 @@
             }
 
             function getNewMoleculeAndDraw(){
-                setLoadButtonDisabled(true); 
+                setLoadButtonsDisabled(true); 
                 var uploadFile = document.getElementById ("uploadFile");
                 var smiles = document.getElementById ("smiles");
 
@@ -126,16 +173,22 @@
                     r.readAsText(f);
                 } else {
                     alert('Вы должны ввести SMILES или выбрать файл');
-                    setLoadButtonDisabled(false);; 
+                    setLoadButtonsDisabled(false);
                 }
+
+                setLoadButtonsDisabled(false);
             }
 
             function drawMolecule(type, data) {
+                setLoadButtonsDisabled(true);
+
                 if (type == 'pdb') {
                    drawPDBMolecule(data);
                 } else {
                     convertMoleculeAndDraw(type, data);
                 }
+
+                setLoadButtonsDisabled(false);
             }
 
             function getSuffix(filename) {
@@ -152,12 +205,12 @@
 
                     else {
                         alert('Ошибка сервера.\n' + data);
-                        setLoadButtonDisabled(false);
+                        setLoadButtonsDisabled(false);
                     }
 
                 }).error(function() {                         
                     alert("Ошибка подключения к серверу");
-                    setLoadButtonDisabled(false);
+                    setLoadButtonsDisabled(false);
 
                 });
             }
@@ -169,12 +222,14 @@
 
                 buildSceneAndDraw(molecule);
                 animate();
-
-                setLoadButtonDisabled(false);
             }
 
-            function setLoadButtonDisabled(disabled) {
-                document.getElementById("loadButton").disabled = disabled;
+            function setLoadButtonsDisabled(disabled) {
+                //document.getElementById("loadButton").disabled = disabled;
+                loadButtons = document.getElementsByName("loadButton");
+                for (var i in loadButtons)
+                    loadButtons[i].disabled = disabled;
+                
             }
         </script>
     </body>

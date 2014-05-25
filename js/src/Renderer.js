@@ -5,25 +5,52 @@
 var camera, controls, renderer, scene;
 var container, stats, projector;
 
-var objects = [];
+var objectMap, objectMapKeys;
 
+var KINDS_OF_MODE = ['ribbon', 'balls', 'lightBonds', 'ballsAndBonds', 'bonds']
 
+var RESTRICTION = {
+	'ribbon': 1000000,
+	'balls': 5000,
+	'lightBonds': 5000,
+	'ballsAndBonds': 1000,
+	'bonds': 1000,	
+}
 
+RESTRICTION.check = function(molecule, mode) {
+	if (molecule.atoms.length > RESTRICTION[mode]) return false;
+	return true;
+}
 
+RESTRICTION.toString = function() {
+	function getRestrictionRow(str) {
+		return str + '    ' + RESTRICTION[str] + '\n'
+	}
+
+	var res = '';
+	for (i in KINDS_OF_MODE)
+		res += getRestrictionRow(KINDS_OF_MODE[i]);
+	//res += getRestrictionRow('ribbon');
+
+	return res
+}
 //-------------------------------------------------------
 //----------- Draw functions ----------------------------
 //-------------------------------------------------------
 
 function draw(scene, molecule) {
-	objects = []
+	objectMap = {}
+	objectMapKeys = []
+
 	var atoms = []
 
 	for (var i in molecule.atoms) {
-    	atoms.push(molecule.atoms[i].serial);
+		if (!molecule.atoms[i].hetflag)
+    		atoms.push(molecule.atoms[i].serial);
    	}
 
 	if (mode == 'balls') {		
-		drawBalls(scene, molecule, quality);	
+		drawBalls(scene, molecule, atoms, quality);
 	} else if (mode == 'lightBonds') {
 		drawBonds(scene, molecule, atoms, false, quality, true);
 	} else if (mode == 'bonds') {
@@ -32,6 +59,9 @@ function draw(scene, molecule) {
 		drawBonds(scene, molecule, atoms, true, quality);
 	} else if (mode == 'ribbon') {
 		drawRibbon(scene, molecule, atoms);
+	}
+
+	if (hetAtomFlag) {
 		atoms = []
 
 		for (var i in molecule.atoms) {
@@ -41,15 +71,19 @@ function draw(scene, molecule) {
    		}	
    		drawBonds(scene, molecule, atoms, true, quality);
 	}
-   	
+
 }
 
-function drawBalls(scene, molecule, quality) {
-	objects = []	
-	
-	for (var i in molecule.atoms) {
-			var atom = molecule.atoms[i];
-			objects.push(addAtom(scene, atom, quality));			
+
+function addToObjectMap(key, value) {
+	objectMap[key.id] = value;
+	objectMapKeys.push(key);
+}
+
+function drawBalls(scene, molecule, atoms, quality) {
+	for (var i in atoms) {
+		var atom = molecule.atoms[atoms[i]];
+		addToObjectMap(addAtom(scene, atom, quality), atom);			
 	}
 }
 
@@ -110,7 +144,7 @@ function drawRibbon(scene, molecule, atomlist) {
             	currentResSeq = atom.resSeq;
 				//var points = []; for (var k = 0; k < 2; k++) points[k] = [];
 				currentCA = atomPosition;
-			} else { // O
+			} else if (currentCA != undefined){ // O
 				atomPosition = new THREE.Vector3().subVectors(atomPosition, currentCA);
 				atomPosition.normalize();
 				atomPosition.multiplyScalar((ss == 'c') ? coilWidth : helixSheetWidth); 
@@ -166,8 +200,8 @@ function addStickSub(scene, atom1, atom2, withBalls, quality) {
 	addCylinder(scene, point2, center, atom2.getColor(), quality);	
 
 	if (withBalls) {
-		objects.push(addAtom(scene, atom1, quality, 0.3));
-		objects.push(addAtom(scene, atom2, quality, 0.3));	
+		addToObjectMap(addAtom(scene, atom1, quality, 0.3), atom1);
+		addToObjectMap(addAtom(scene, atom2, quality, 0.3), atom2);	
 	} else {
 		addAtom(scene, atom1, quality, 0.1);
 		addAtom(scene, atom2, quality, 0.1);
@@ -246,6 +280,14 @@ function addCylinder(scene, point1, point2, color, quality) {
 //-------------------------------------------------------
 
 function buildSceneAndDraw(molecule) {
+	dislayMoleculeInformation(molecule);
+
+	if (!RESTRICTION.check(molecule, mode)) {
+		alert('Некорректный режим. В выбранной вами молекуле ' + molecule.atoms.length + ' атомов. Выберите режим, который поддерживает больше чем ' 
+			+ molecule.atoms.length + ' атомов.\nТаблица ограничений (режим, максимальное количество атомов):\n' + RESTRICTION);
+		return;
+	}
+
 	// create a scene
 	scene = new THREE.Scene();
 	scene.fog = new THREE.FogExp2(0xcccccc, 0.002 );
@@ -309,12 +351,54 @@ function onDocumentMouseDown( event ) {
 
 	var raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
 
-	var intersects = raycaster.intersectObjects(objects);
+	var intersects = raycaster.intersectObjects(objectMapKeys);
 
 	if (intersects.length > 0) {
-		intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
+		//intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
+		console.log(objectMap[intersects[0].object.id]);
+		dislayAtomInformation(objectMap[intersects[0].object.id]);
 		render();
 	}
+}
+
+function dislayAtomInformation(atom) {
+	atomDiv = document.getElementById('atomData');
+	while (atomDiv.firstChild) {
+	    atomDiv.removeChild(atomDiv.firstChild);
+	}
+	if (atom.hetflag) {
+		atomDiv.appendChild(getAtomProperty('Element (HetAtom)', atom.element));
+	} else {
+		atomDiv.appendChild(getAtomProperty('Element', atom.element));
+	}
+	atomDiv.appendChild(getAtomProperty('X', atom.x));
+	atomDiv.appendChild(getAtomProperty('Y', atom.y));
+	atomDiv.appendChild(getAtomProperty('Z', atom.z));
+}
+
+function getAtomProperty(name, data) {
+	return getProperty(name, data, 'atomProperty');
+}
+
+function getProperty(name, data, id) {
+	var propertyDiv = document.createElement('div');
+	propertyDiv.id = id;
+	propertyDiv.innerHTML = name + ': ' + data;
+	return propertyDiv;
+}
+
+function dislayMoleculeInformation(molecule) {
+	molDiv = document.getElementById('moleculeData');
+	while (molDiv.firstChild) {
+	    molDiv.removeChild(molDiv.firstChild);
+	}
+	molDiv.appendChild(getMolProperty('Atoms count', molecule.atoms.length));
+	molDiv.appendChild(getMolProperty('Class', molecule.classification));
+	molDiv.appendChild(getMolProperty('PDB id', molecule.idCode));
+}
+
+function getMolProperty(name, data) {
+	return getProperty(name, data, 'molProperty');
 }
 
 function onWindowResize() {
