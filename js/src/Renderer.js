@@ -49,6 +49,8 @@ function draw(scene, molecule) {
 		if (!molecule.atoms[i].hetflag)
     		atoms.push(molecule.atoms[i].serial);
    	}
+   	colorByChain(molecule, atoms);
+
 
 	if (mode == 'balls') {		
 		drawBalls(scene, molecule, atoms, quality);
@@ -78,6 +80,19 @@ function draw(scene, molecule) {
 }
 var TV3 = THREE.Vector3, TF3 = THREE.Face3, TCo = THREE.Color;
 
+function colorByChain(molecule, atomlist, colorSidechains) {
+   for (var i in atomlist) {
+      var atom = molecule.atoms[atomlist[i]]; if (atom == undefined) continue;
+
+      if (atom.hetflag) continue;
+      if (colorSidechains || atom.name == 'CA' || atom.name == 'O3\'') {
+         var color = new TCo(0);
+         color.setHSL((atom.chain.charCodeAt(0) * 5) % 17 / 17.0, 1, 0.44);
+         atom.color = color.getHex();
+      }
+   }
+};
+
 function drawRibbonExperimental(group, molecule, atomlist) {
 	num = 2;
 	div = 5;
@@ -96,9 +111,7 @@ function drawRibbonExperimental(group, molecule, atomlist) {
 		if (atom == undefined) continue;
 
 		if ((atom.name == 'O' || atom.name == 'CA') && !atom.hetflag) {
-			//console.log(atom);
 			if (atom.name == 'CA') {
-				//console.log('CA');
 				if (currentChain != atom.chain || currentResi + 1 != atom.resSeq) {
 					for (var j = 0; !thickness && j < num; j++)
 						drawSmoothCurve(group, points[j], 1 ,colors, div);
@@ -111,9 +124,8 @@ function drawRibbonExperimental(group, molecule, atomlist) {
 			currentChain = atom.chain;
 			currentResi = atom.resSeq;
 			//ss = atom.ss; ssborder = atom.ssstart || atom.ssend;
-			colors.push(atom.getColor());
+			colors.push(atom.color);
 			} else { // O
-				//console.log('O');
 				var O = new TV3(atom.x, atom.y, atom.z);
 				O.sub(currentCA);
 				O.normalize(); // can be omitted for performance
@@ -130,9 +142,10 @@ function drawRibbonExperimental(group, molecule, atomlist) {
 			}
 		}
 	}
+	console.log(colors);
 	for (var j = 0; !thickness && j < num; j++)
 		drawSmoothCurve(group, points[j], 1 ,colors, div);
-	console.log(points);
+	
 	if (fill) this.drawStrip1(group, points[0], points[num - 1], colors, div, thickness);
 };
 
@@ -157,7 +170,6 @@ function drawSmoothCurve(group, _points, width, colors, div) {
 };
 
 function drawStrip1(group, p1, p2, colors, div, thickness) {
-	console.log(colors);
    if ((p1.length) < 2) return;
    div = div || this.axisDIV;
    p1 = subdivide(p1, div);
@@ -194,8 +206,8 @@ function drawStrip1(group, p1, p2, colors, div, thickness) {
    var vsize = vs.length - 8; // Cap
    for (var i = 0; i < 4; i++) {vs.push(vs[i * 2]); vs.push(vs[vsize + i * 2])};
    vsize += 8;
-   Face4(fs, vsize, vsize + 2, vsize + 6, vsize + 4, undefined, fs[0].color);
-   Face4(fs, vsize + 1, vsize + 5, vsize + 7, vsize + 3, undefined, fs[fs.length - 3].color);
+   Face4(fs, vsize, vsize + 2, vsize + 6, vsize + 4, fs[0].color);
+   Face4(fs, vsize + 1, vsize + 5, vsize + 7, vsize + 3, fs[fs.length - 3].color);
    geo.computeFaceNormals();
    geo.computeVertexNormals(false);
    var material =  new THREE.MeshLambertMaterial();
@@ -222,6 +234,7 @@ function drawBalls(scene, molecule, atoms, quality) {
 
 function drawBonds(scene, molecule, atoms, withBalls, quality, lightBonds) {	
 	var nAtoms = atoms.length;
+	console.log(atoms);
 
 	for (var _i = 0; _i < nAtoms; _i++) {
 		var i = atoms[_i];
@@ -507,6 +520,7 @@ function dislayAtomInformation(atom) {
 	atomDiv.appendChild(getAtomProperty('X', atom.x));
 	atomDiv.appendChild(getAtomProperty('Y', atom.y));
 	atomDiv.appendChild(getAtomProperty('Z', atom.z));
+	atomDiv.appendChild(getAtomProperty('serial', atom.serial));
 }
 
 function getAtomProperty(name, data) {

@@ -9,23 +9,18 @@
 	this.z = z;
 	this.element = element;
 	this.bonds = [];	
+	this.color = 0x000000;
   	this.ElementColors = {"H": 0xCCCCCC, "C": 0xAAAAAA, "O": 0xCC0000, "N": 0x0000CC, "S": 0xCCCC00, "P": 0x6622CC,
                          "F": 0x00CC00, "CL": 0x00CC00, "BR": 0x882200, "I": 0x6600AA,
                          "FE": 0xCC6600, "CA": 0x8888AA};
 	this.getColor = function() {
-		//console.log(this.element, CPK[this.element], this.ElementColors[this.element])
-
-
-
-		//if (this.element in this.ElementColors) 
-			//return this.ElementColors[this.element];
-
-
 		if (this.element in CPK)
 			return parseInt(CPK[this.element]['color'], 16);
+		else if (this.element in this.ElementColors) 
+			return this.ElementColors[this.element];
 		else {
 			console.log('unrecognized atom: ' + this.element);
-			return '#000000';
+			return 0x000000;
 		}	
 
 	};
@@ -69,7 +64,8 @@ function Molecule () {
 			var name = line.substr(12, 4).trim();	
 			var chain = line.substr(21, 1);
 			var resSeq = parseInt(line.substr(22, 4));
-
+			altLoc = line.substr(16, 1);
+         	if (altLoc != ' ' && altLoc != 'A') return; // TODO: what the magic?
 			var x = parseFloat(line.substr(30, 8));
 			var y = parseFloat(line.substr(38, 8));
 			var z = parseFloat(line.substr(46, 8));
