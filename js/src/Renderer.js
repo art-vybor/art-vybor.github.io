@@ -60,8 +60,6 @@ function draw(scene, molecule) {
 		drawBonds(scene, molecule, atoms, false, quality, false);
 	} else if (mode == 'ballsAndBonds') {
 		drawBonds(scene, molecule, atoms, true, quality);
-	} else if (mode == 'ribbon') {
-		drawRibbon(scene, molecule, atoms);
 	} else if (mode == 'ribbon_experimental') {
 		drawRibbonExperimental(scene, molecule, atoms);
 	}
@@ -74,7 +72,17 @@ function draw(scene, molecule) {
     			atoms.push(molecule.atoms[i].serial);	
     		}
    		}	
-   		drawBonds(scene, molecule, atoms, true, quality);
+        if (mode == 'balls') {      
+            drawBalls(scene, molecule, atoms, quality);
+        } else if (mode == 'lightBonds') {
+            drawBonds(scene, molecule, atoms, false, quality, true);
+        } else if (mode == 'bonds') {
+            drawBonds(scene, molecule, atoms, false, quality, false);
+        } else if (mode == 'ballsAndBonds') {
+            drawBonds(scene, molecule, atoms, true, quality);
+        } else if (mode == 'ribbon_experimental') {
+            drawBonds(scene, molecule, atoms, true, quality);
+        }
 	}
 
 }
