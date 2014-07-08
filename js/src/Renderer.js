@@ -664,3 +664,165 @@ function addToObjectMap(key, value) {
 	objectMap[key.id] = value;
 	objectMapKeys.push(key);
 }
+
+
+function MoleculeStorage() {
+	var idToMolecule = {};
+	var idToVisibility = {};
+	var newId = 1;
+
+	this.add = function(molecule) { 
+		idToMolecule[newId] = molecule;
+		idToVisibility[newId]=  true;
+		newId++;
+	}
+
+	this.remove = function(id) { 
+		if (id in idToVisibility) {
+			delete idToMolecule[id];
+			delete idToVisibility[id];	
+		}		
+	}
+
+	this.getAllId = function() {
+		result = [];
+		for (var id in idToVisibility) {
+			result.push(id);
+		}
+
+		return result;
+	}
+
+	this.getAllVisible = function() {
+		result = [];
+		for (var id in idToVisibility) {
+			if (idToVisibility[id]) {
+				result.push(idToMolecule[id]);
+			}
+		}
+
+		return result;
+	}
+
+	this.setVisibility = function(id, value) {
+		if (id in idToVisibility) {
+			idToVisibility[id] = value;
+		}
+	}
+
+	this.getVisibility = function(id) {
+		if (id in idToVisibility) {
+			return idToVisibility[id];
+		} else {
+			return false;
+		}
+	}
+}
+
+function MoleculeRender() {
+	var moleculeStorage = new MoleculeStorage();
+	var scene, camera, controls, renderer, container, stats, projector;
+	var drawDivName;
+
+	this.getMoleculeStorage = function() {
+		return moleculeStorage;
+	}
+
+	this.init = function(_drawDivName) {
+		drawDivName = _drawDivName;
+		// create a scene
+		scene = new THREE.Scene();
+		scene.fog = new THREE.FogExp2(0xcccccc, 0.002);
+
+		// set a camera
+		camera = new THREE.PerspectiveCamera(45, getWidth(drawDivName) / getHeight(drawDivName), 1, 1000); 
+		camera.position.x = 0;
+		camera.position.y = 0;
+		camera.position.z = 100;
+		scene.add( camera );
+	  
+	  	//set controls
+		controls = new THREE.TrackballControls(camera, container);
+		controls.rotateSpeed = 1.0;
+		controls.zoomSpeed = 1.2;
+		controls.panSpeed = 0.8;
+		controls.noZoom = false;
+		controls.noPan = false;
+		controls.staticMoving = false;
+		controls.dynamicDampingFactor = 0.3;
+		controls.keys = [ 65, 83, 68 ];
+		controls.addEventListener('change', render);
+	 
+	 	//set light
+		var light = new THREE.HemisphereLight(0xFFFFFF, 0x777777);
+		scene.add( light );	
+		
+		//init render
+		renderer = new THREE.WebGLRenderer({antialias: true});
+		renderer.setClearColor(0xCCCCCC, 1);	
+		renderer.setSize(getWidth(drawDivName), getHeight(drawDivName) - 5);
+
+		//set domElements
+		clearDomContainer(drawDivName);
+		container.appendChild(renderer.domElement);
+
+		stats = new Stats();
+		stats.domElement.style.position = 'absolute';
+		stats.domElement.style.top = '0px';
+		stats.domElement.style.zIndex = 100;
+		container.appendChild( stats.domElement );
+
+		projector = new THREE.Projector();
+
+		//add events
+		container.addEventListener('mousedown', onDocumentMouseDown, false);
+		window.addEventListener('resize', onWindowResize, false);
+	}
+
+	this.draw = function() {
+		; //draw molecule from moleculeList
+	}
+
+	var onWindowResize = function() {
+		clearDomContainer(drawDivName);
+
+		renderer.setSize(getWidth(drawDivName), getHeight(drawDivName) - 5);
+		container.appendChild(renderer.domElement);
+		container.appendChild(stats.domElement);
+
+		camera.aspect = getWidth(drawDivName) / getHeight(drawDivName);
+		camera.updateProjectionMatrix();
+
+		controls.handleResize();
+
+		render();
+
+	}
+
+	var render = function() {
+		renderer.render(scene, camera);
+		stats.update();
+	}
+
+	var onDocumentMouseDown = function(event) {
+		event.preventDefault();
+
+		var vector = new THREE.Vector3((event.offsetX / getWidth('drawDiv')) * 2 - 1, - (event.offsetY / getHeight('drawDiv')) * 2 + 1, 0.5);
+		projector.unprojectVector(vector, camera);
+
+		var raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+
+		var intersects = raycaster.intersectObjects(objectMapKeys);
+
+		if (intersects.length > 0) {
+			render();
+		}
+	}
+}
+
+function clearDomContainer(containerName) {
+	container = document.getElementById(containerName);
+	while (container.firstChild) {
+	    container.removeChild(container.firstChild);
+	}
+}
