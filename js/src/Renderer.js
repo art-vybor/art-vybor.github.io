@@ -72,6 +72,7 @@ function draw(scene, molecule) {
     			atoms.push(molecule.atoms[i].serial);	
     		}
    		}	
+
    		if (mode == 'balls') {		
 			drawBalls(scene, molecule, atoms, quality);
 		} else if (mode == 'lightBonds') {
